@@ -1,0 +1,42 @@
+Entregar o arquivo .asm ou .s
+nome do arquivo com o nome do aluno
+
+campo = matrix 8x8 de inteiros inicializadas com zeros
+
+calcula_bombas:
+    a0 = *campo
+    a1 = n
+    
+mostra_campo:
+    a0 = *campo
+    a1 = n
+    
+apos as inicializacoes, chamar a funcao insere_bombas(*campo, n)
+as bombas sao representadas pelo numero 9
+representar as bandeiras somando 10 a qtd de bombas atuais
+
+interface:
+    a = abrir uma posicao (mostrar o numero de bombas as redor)
+    b = inserir/retirar uma bandeira
+    
+    input(numero da linha x coluna)
+    
+    - caso tenha uma bomba no input
+        dizer q tinha bomba e deu game over
+        interface do campo com a quantidade de bombas
+        posicoes das bombas
+        posicoes das bandeiras
+    
+    - caso N tenha bomba naquela posicao
+        mostrar o campo com a quantidade de bombas nas posicoes ja jogadas
+        e mostrar as bandeiras ja colocadas
+        
+    - caso tente abrir uma posicao com bandeira
+        dizer q n pode pq tem uma bandeira posicionada (jogada invalida)
+
+### Estrutura do Programa ###
+inicializar a matriz campo com zeros
+inicializar a matriz interface com hifens
+
+inserir as bombas
+calcula as bombas na vizinhanca para cada posicao armazenando em outra matriz
