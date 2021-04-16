@@ -6,8 +6,8 @@
 nova_linha:		.asciz	"|\n "
 posicao_fechada:	.asciz	"-"
 separador:		.asciz	" | "
-campo_header:		.asciz	"\n     0 1 2 3 4 5 6 7\n     ----------------\n 0 | "
-campo_footer:		.asciz	"\n     ----------------\n"
+campo_header:		.asciz	"\nCampo:\n     0 1 2 3 4 5 6 7\n    ------------------\n 0 | "
+campo_footer:		.asciz	"   ------------------\n"
 campo:			.word  	0 0 0 0 0 0 0 0
 				0 0 0 0 0 0 0 0
 				0 0 0 0 0 0 0 0
@@ -31,6 +31,8 @@ main:
 	la	t1, colunas
 	lw	a2, (t1)
 	
+	jal 	mostra_campo
+	la	a0, campo
 	jal 	mostra_campo
 	j	end
 
@@ -57,7 +59,17 @@ mostra_campo:
 	li 	a7, 4
     	ecall
 	ret
-	
+	asd:
+		############################
+    		# printa o numero da linha
+		mv	a0, t2
+		li	a7, 1
+		ecall
+  		la 	a0, separador
+		li 	a7, 4
+    		ecall
+    		############################
+    		
 	loopI_mostra_campo:
 		# printa o valor do vetor
 		li	t3, 0
@@ -92,15 +104,7 @@ mostra_campo:
    		la 	a0, nova_linha
 		li 	a7, 4
     		ecall
-    		
-    		# printa o numero da linha
-		mv	a0, t2
-		li	a7, 1
-		ecall
-  		la 	a0, separador
-		li 	a7, 4
-    		ecall
-    		bne	t2, a2, loopI_mostra_campo
+    		bne	t2, a2, asd
     		ret
     		
     	printa_posicao_fechada:
