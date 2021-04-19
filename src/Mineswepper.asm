@@ -3,11 +3,12 @@
 # Organizacao de Computadores 2020.2
 
 	.data
-nova_linha:		.asciz	"|\n "
-posicao_fechada:	.asciz	"-"
-separador:		.asciz	" | "
-campo_header:		.asciz	"\nCampo:\n     0 1 2 3 4 5 6 7\n    ------------------\n 0 | "
-campo_footer:		.asciz	"   ------------------\n"
+msg_nova_linha:		.asciz	"|\n "
+msg_icone_fechado:	.asciz	"-"
+msg_icone_bandeira:	.asciz	"F"
+msg_icone_separador:	.asciz	" | "
+msg_campo_header:	.asciz	"\n\n\n\n\nCampo:\n     0 1 2 3 4 5 6 7\n    ------------------\n 0 | "
+msg_campo_footer:	.asciz	"   ------------------\n"
 msg_opcoes_menu:	.asciz	"\n 0 - sair\n 1 - abrir posicao\n 2 - posicionar/remover bandeira\n Opcao: "
 msg_abrir_posicao:	.asciz	"\n Qual posicao pretende abrir?: "
 msg_pega_i:		.asciz	"\n Entre com o valor do I: "
@@ -19,6 +20,14 @@ salva_ra1:		.word 	0
 linhas:			.word	8
 colunas:		.word	8
 campo:			.word 	0 0 0 0 0 0 0 0
+				0 0 0 0 0 0 0 0
+				0 0 0 0 0 0 0 0
+				0 0 0 0 0 0 0 0
+				0 0 0 0 0 0 0 0
+				0 0 0 0 0 0 0 0
+				0 0 0 0 0 0 0 0
+				0 0 0 0 0 0 0 0
+interface:		.word 	0 0 0 0 0 0 0 0
 				0 0 0 0 0 0 0 0
 				0 0 0 0 0 0 0 0
 				0 0 0 0 0 0 0 0
@@ -119,13 +128,13 @@ mostra_campo:
 	li	t2, 0
 	mv	s0, ra
 	# printa cabecalho do campo
-	la 	a0, campo_header
+	la 	a0, msg_campo_header
 	li 	a7, 4
     	ecall
 	jal	loopI_mostra_campo
 	mv	ra, s0
 	# printa rodape do campo
-	la 	a0, campo_footer
+	la 	a0, msg_campo_footer
 	li 	a7, 4
     	ecall
 	ret
@@ -134,7 +143,7 @@ mostra_campo:
 		mv	a0, t2
 		li	a7, 1
 		ecall
-		la 	a0, separador
+		la 	a0, msg_icone_separador
 		li 	a7, 4
 		ecall
     		
@@ -144,7 +153,9 @@ mostra_campo:
 		lw	t3, (t0)
 		# variavel para comparar se a celular esta fechada
 		li	t4, 0
+		li	t5, 100
 		beq	t4, t3, printa_posicao_fechada
+		bge	t3, t5, printa_bandeira 
 		lw	a0, 0(t0)
 		li	a7, 1
 		ecall
@@ -158,7 +169,6 @@ mostra_campo:
 		addi	t1, t1, 1
 		bne	t1, a1, loopI_mostra_campo
 		beq	t1, a1, loopJ_mostra_campo
-
     		ret
 		
 	loopJ_mostra_campo:
@@ -171,15 +181,29 @@ mostra_campo:
 		# incrementa variavel J
 		addi	t2, t2, 1
 		# printa nova linha
- 		la 	a0, nova_linha
+ 		la 	a0, msg_nova_linha
 		li 	a7, 4
     		ecall
     		bne	t2, a2, printa_numero_linha
     		ret
-    		
+    	printa_bandeira:
+    	    	# printa mensagem
+		la 	a0, msg_icone_bandeira
+		li 	a7, 4
+	    	ecall
+	    	# printa um espaco em branco
+		li      a0, 32
+		li      a7, 11  
+		ecall
+		# caminha pelo campo
+		addi	t0, t0, 4
+		# incrementa variavel I
+		addi	t1, t1, 1
+		beq	t1, a1, loopJ_mostra_campo
+		bne	t1, a1, loopI_mostra_campo
     	printa_posicao_fechada:
     		# printa a posicao como sendo fechada
-   		la 	a0, posicao_fechada
+   		la 	a0, msg_icone_fechado
 		li 	a7, 4
     		ecall
 		# printa um espaco em branco
