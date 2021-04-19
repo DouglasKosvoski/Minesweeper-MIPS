@@ -8,30 +8,26 @@ posicao_fechada:	.asciz	"-"
 separador:		.asciz	" | "
 campo_header:		.asciz	"\nCampo:\n     0 1 2 3 4 5 6 7\n    ------------------\n 0 | "
 campo_footer:		.asciz	"   ------------------\n"
-campo:			.word  	0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
+msg_opcoes_menu:	.asciz	"\n 0 - sair\n 1 - abrir posicao\n 2 - posicionar/remover bandeira\n Opcao: "
+msg_abrir_posicao:	.asciz	"\n Qual posicao pretende abrir?: "
+msg_pega_i:		.asciz	"\n Entre com o valor do I: "
+msg_pega_j:		.asciz	" Entre com o valor do J: "
+msg_bandeira:		.asciz	"\n Qual bandeira deseja colocar/remover?: "
+salva_S0:   		.word 	0
+salva_ra:   		.word 	0
+salva_ra1:		.word 	0
 linhas:			.word	8
 colunas:		.word	8
-salva_S0:               .word   0
-salva_ra:               .word   0
-salva_ra1:              .word   0
-
-
+campo:			.word 	0 0 0 0 0 0 0 0
+				0 0 0 0 0 0 0 0
+				0 0 0 0 0 0 0 0
+				0 0 0 0 0 0 0 0
+				0 0 0 0 0 0 0 0
+				0 0 0 0 0 0 0 0
+				0 0 0 0 0 0 0 0
+				0 0 0 0 0 0 0 0
 	.text
-main:
-	la	a0, campo
-	la	t0, linhas
-	lw	a1, (t0)
-	la	t1, colunas
-	lw	a2, (t1)
-	jal	mostra_campo
-	
+inicializa:
 	la	a0, campo
 	la	t0, linhas
 	lw	a1, (t0)
@@ -39,13 +35,76 @@ main:
 	lw	a2, (t1)
 	jal 	INSERE_BOMBA
 
+menu:
+	mv	s4, ra
 	la	a0, campo
 	la	t0, linhas
 	lw	a1, (t0)
 	la	t1, colunas
 	lw	a2, (t1)
 	jal	mostra_campo
+	# exibe menu de escolhas
+	la 	a0, msg_opcoes_menu
+	li 	a7, 4
+    	ecall
+	# pega input da escolha do menu
+	li 	a7, 5
+    	ecall
+   	# condicao de abrir posicao
+  	li	a1, 1
+  	beq	a0, a1, abrir_posicao
+  	# condicao de colocar/remover bandeira
+  	li	a1, 2
+  	beq	a0, a1, bandeira
+  	# se a opcao nao foi 1 nem 2 termina o programa
 	j	end
+
+abrir_posicao:
+	# printa mensagem
+	la 	a0, msg_abrir_posicao
+	li 	a7, 4
+    	ecall
+    	# printa mensagem para o input do valor do i
+	la 	a0, msg_pega_i
+	li 	a7, 4
+    	ecall
+    	# pega o I
+	li 	a7, 5
+    	ecall
+    	mv	a3, a0
+    	# printa mensagem para o input do valor do j
+	la 	a0, msg_pega_j
+	li 	a7, 4
+    	ecall
+    	# pega o J
+	li 	a7, 5
+    	ecall
+    	mv	a4, a0
+	mv	ra, s4
+	ret
+bandeira:
+	# printa mensagem
+	la 	a0, msg_bandeira
+	li 	a7, 4
+    	ecall
+    	# printa mensagem para o input do valor do i
+	la 	a0, msg_pega_i
+	li 	a7, 4
+    	ecall
+    	# pega o I
+	li 	a7, 5
+    	ecall
+    	mv	a3, a0
+    	# printa mensagem para o input do valor do j
+	la 	a0, msg_pega_j
+	li 	a7, 4
+    	ecall
+    	# pega o J
+	li 	a7, 5
+    	ecall
+    	mv	a4, a0
+	mv	ra, s4
+	ret
 
 mostra_campo:
 	# recebe o endereco inicial do campo em a0
@@ -71,30 +130,32 @@ mostra_campo:
     	ecall
 	ret
 	printa_numero_linha:
-    		# printa o numero da linha
+		# printa o numero da linha
 		mv	a0, t2
 		li	a7, 1
 		ecall
-  		la 	a0, separador
+		la 	a0, separador
 		li 	a7, 4
-    		ecall
+		ecall
     		
 	loopI_mostra_campo:
 		# printa o valor do vetor
 		li	t3, 0
 		lw	t3, (t0)
+		# variavel para comparar se a celular esta fechada
+		li	t4, 0
 		beq	t4, t3, printa_posicao_fechada
 		lw	a0, 0(t0)
 		li	a7, 1
 		ecall
 		# printa um espaco em branco
-    		li      a0, 32
-    		li      a7, 11  
-    		ecall
-    		# caminha pelo campo
-    		addi	t0, t0, 4
-    		# incrementa variavel I
-    		addi	t1, t1, 1
+		li      a0, 32
+		li      a7, 11  
+		ecall
+		# caminha pelo campo
+		addi	t0, t0, 4
+		# incrementa variavel I
+		addi	t1, t1, 1
 		bne	t1, a1, loopI_mostra_campo
 		beq	t1, a1, loopJ_mostra_campo
 
@@ -102,15 +163,15 @@ mostra_campo:
 		
 	loopJ_mostra_campo:
 		# printa um espaco em branco
-    		li      a0, 32
-    		li      a7, 11
-    		ecall
-    		# reseta variavel I
-    		li	t1, 0		
-    		# incrementa variavel J
-    		addi	t2, t2, 1
-    		# printa nova linha
-   		la 	a0, nova_linha
+		li      a0, 32
+		li      a7, 11
+		ecall
+		# reseta variavel I
+		li	t1, 0		
+		# incrementa variavel J
+		addi	t2, t2, 1
+		# printa nova linha
+ 		la 	a0, nova_linha
 		li 	a7, 4
     		ecall
     		bne	t2, a2, printa_numero_linha
@@ -122,14 +183,13 @@ mostra_campo:
 		li 	a7, 4
     		ecall
 		# printa um espaco em branco
-    		li      a0, 32
-    		li      a7, 11  
-    		ecall
-    		# caminha pelo campo
-    		addi	t0, t0, 4
-    		# incrementa variavel I
-    		addi	t1, t1, 1
-    		
+		li      a0, 32
+		li      a7, 11  
+		ecall
+		# caminha pelo campo
+		addi	t0, t0, 4
+		# incrementa variavel I
+		addi	t1, t1, 1
 		beq	t1, a1, loopJ_mostra_campo
 		bne	t1, a1, loopI_mostra_campo
 		ret
@@ -177,19 +237,18 @@ FIM_LACO:                                       # recupera registradores salvos
                 lw      ra, 0(t0)               # recupera conteudo de ra da memória            
                 jr      ra                      # retorna para funcao que fez a chamada
 PSEUDO_RAND:
-                addi t6, zero, 125              # carrega constante t6 = 125
-                lui  t5, 682                    # carrega constante t5 = 2796203
-                addi t5, t5, 1697               # 
-                addi t5, t5, 1034               #       
-                mul  a1, a1, t6                 # a = a * 125
-                rem  a1, a1, t5                 # a = a % 2796203
-                rem  a0, a1, a0                 # a % lim
-                bge  a0, zero, EH_POSITIVO      # testa se valor eh positivo
-                addi t4, zero, -1               # caso não 
-                mul  a0, a0, t4                 # transforma em positivo
+                addi 	t6, zero, 125              # carrega constante t6 = 125
+                lui  	t5, 682                    # carrega constante t5 = 2796203
+                addi 	t5, t5, 1697               # 
+                addi 	t5, t5, 1034               #       
+                mul  	a1, a1, t6                 # a = a * 125
+                rem  	a1, a1, t5                 # a = a % 2796203
+                rem  	a0, a1, a0                 # a % lim
+                bge  	a0, zero, EH_POSITIVO      # testa se valor eh positivo
+                addi 	t4, zero, -1               # caso não 
+                mul  	a0, a0, t4                 # transforma em positivo
 EH_POSITIVO:    
                 ret                             # retorna em a0 o valor obtido
 
-		
 end:
 	nop
