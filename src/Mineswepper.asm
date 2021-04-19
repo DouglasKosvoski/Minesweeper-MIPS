@@ -4,8 +4,9 @@
 
 	.data
 msg_nova_linha:		.asciz	"|\n "
-msg_icone_fechado:	.asciz	"-"
+msg_icone_fechado:	.asciz	"▀"
 msg_icone_bandeira:	.asciz	"F"
+msg_icone_bomba:	.asciz	"X"
 msg_icone_separador:	.asciz	" | "
 msg_campo_header:	.asciz	"\n\n\n\n\nCampo:\n     0 1 2 3 4 5 6 7\n    ------------------\n 0 | "
 msg_campo_footer:	.asciz	"   ------------------\n"
@@ -14,6 +15,7 @@ msg_abrir_posicao:	.asciz	"\n Qual posicao pretende abrir?: "
 msg_pega_i:		.asciz	"\n Entre com o valor do I: "
 msg_pega_j:		.asciz	" Entre com o valor do J: "
 msg_bandeira:		.asciz	"\n Qual bandeira deseja colocar/remover?: "
+
 salva_S0:   		.word 	0
 salva_ra:   		.word 	0
 salva_ra1:		.word 	0
@@ -27,6 +29,7 @@ campo:			.word 	0 0 0 0 0 0 0 0
 				0 0 0 0 0 0 0 0
 				0 0 0 0 0 0 0 0
 				0 0 0 0 0 0 0 0
+				
 interface:		.word 	0 0 0 0 0 0 0 0
 				0 0 0 0 0 0 0 0
 				0 0 0 0 0 0 0 0
@@ -153,12 +156,16 @@ mostra_campo:
 		lw	t3, (t0)
 		# variavel para comparar se a celular esta fechada
 		li	t4, 0
-		li	t5, 100
+		li	t5, 10
+		li	t6, 9
 		beq	t4, t3, printa_posicao_fechada
-		bge	t3, t5, printa_bandeira 
+		bge	t3, t5, printa_bandeira
+		beq	t3, t6, printa_bomba
 		lw	a0, 0(t0)
 		li	a7, 1
 		ecall
+		
+	sequencia:
 		# printa um espaco em branco
 		li      a0, 32
 		li      a7, 11  
@@ -186,37 +193,26 @@ mostra_campo:
     		ecall
     		bne	t2, a2, printa_numero_linha
     		ret
+    		
     	printa_bandeira:
     	    	# printa mensagem
 		la 	a0, msg_icone_bandeira
 		li 	a7, 4
 	    	ecall
-	    	# printa um espaco em branco
-		li      a0, 32
-		li      a7, 11  
-		ecall
-		# caminha pelo campo
-		addi	t0, t0, 4
-		# incrementa variavel I
-		addi	t1, t1, 1
-		beq	t1, a1, loopJ_mostra_campo
-		bne	t1, a1, loopI_mostra_campo
+		b	sequencia
+		
     	printa_posicao_fechada:
     		# printa a posicao como sendo fechada
    		la 	a0, msg_icone_fechado
 		li 	a7, 4
     		ecall
-		# printa um espaco em branco
-		li      a0, 32
-		li      a7, 11  
-		ecall
-		# caminha pelo campo
-		addi	t0, t0, 4
-		# incrementa variavel I
-		addi	t1, t1, 1
-		beq	t1, a1, loopJ_mostra_campo
-		bne	t1, a1, loopI_mostra_campo
-		ret
+		b	sequencia
+	printa_bomba:
+    		# printa o icone da bomba
+   		la 	a0, msg_icone_bomba
+		li 	a7, 4
+    		ecall
+		b	sequencia
 		
 INSERE_BOMBA:
                 la      t0, salva_S0
