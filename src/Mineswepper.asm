@@ -4,7 +4,7 @@
 
 	.data
 msg_nova_linha:		.asciz	"|\n "
-msg_icone_fechado:	.asciz	"▀"
+msg_icone_fechado:	.asciz	"█"
 msg_icone_bandeira:	.asciz	"F"
 msg_icone_bomba:	.asciz	"X"
 msg_icone_separador:	.asciz	" | "
@@ -21,23 +21,26 @@ salva_ra:   		.word 	0
 salva_ra1:		.word 	0
 linhas:			.word	8
 colunas:		.word	8
-campo:			.word 	0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
+campo:			.word
+	0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0
 				
-interface:		.word 	0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
-				0 0 0 0 0 0 0 0
+interface:		.word
+	0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0
+	0 0 0 0 0 0 0 0
+	
 	.text
 inicializa:
 	la	a0, campo
@@ -49,7 +52,7 @@ inicializa:
 
 menu:
 	mv	s4, ra
-	la	a0, campo
+	la	a0, interface
 	la	t0, linhas
 	lw	a1, (t0)
 	la	t1, colunas
@@ -71,52 +74,37 @@ menu:
   	# se a opcao nao foi 1 nem 2 termina o programa
 	j	end
 
-abrir_posicao:
-	# printa mensagem
-	la 	a0, msg_abrir_posicao
-	li 	a7, 4
-    	ecall
-    	# printa mensagem para o input do valor do i
-	la 	a0, msg_pega_i
-	li 	a7, 4
-    	ecall
-    	# pega o I
-	li 	a7, 5
-    	ecall
-    	mv	a3, a0
-    	# printa mensagem para o input do valor do j
-	la 	a0, msg_pega_j
-	li 	a7, 4
-    	ecall
-    	# pega o J
-	li 	a7, 5
-    	ecall
-    	mv	a4, a0
-	mv	ra, s4
-	ret
-bandeira:
-	# printa mensagem
-	la 	a0, msg_bandeira
-	li 	a7, 4
-    	ecall
-    	# printa mensagem para o input do valor do i
-	la 	a0, msg_pega_i
-	li 	a7, 4
-    	ecall
-    	# pega o I
-	li 	a7, 5
-    	ecall
-    	mv	a3, a0
-    	# printa mensagem para o input do valor do j
-	la 	a0, msg_pega_j
-	li 	a7, 4
-    	ecall
-    	# pega o J
-	li 	a7, 5
-    	ecall
-    	mv	a4, a0
-	mv	ra, s4
-	ret
+	abrir_posicao:
+		# printa mensagem
+		la 	a0, msg_abrir_posicao
+		li 	a7, 4
+    		ecall
+		pega_ij:
+    			# printa mensagem para o input do valor do i
+			la 	a0, msg_pega_i
+			li 	a7, 4
+    			ecall
+    			# pega o I
+			li 	a7, 5
+    			ecall
+    			mv	a3, a0
+    			# printa mensagem para o input do valor do j
+			la 	a0, msg_pega_j
+			li 	a7, 4
+    			ecall
+    			# pega o J
+			li 	a7, 5
+    			ecall
+    			mv	a4, a0
+			mv	ra, s4
+			ret
+		bandeira:
+			# printa mensagem
+			la 	a0, msg_bandeira
+			li 	a7, 4
+    			ecall
+			jal	pega_ij
+			ret
 
 mostra_campo:
 	# recebe o endereco inicial do campo em a0
@@ -141,6 +129,7 @@ mostra_campo:
 	li 	a7, 4
     	ecall
 	ret
+	
 	printa_numero_linha:
 		# printa o numero da linha
 		mv	a0, t2
@@ -207,6 +196,7 @@ mostra_campo:
 		li 	a7, 4
     		ecall
 		b	sequencia
+		
 	printa_bomba:
     		# printa o icone da bomba
    		la 	a0, msg_icone_bomba
@@ -228,6 +218,7 @@ QTD_BOMBAS:
                 addi    a7, zero, 30            # ecall 30 pega o tempo do sistema em milisegundos (usado como semente)
                 ecall                           
                 add     a1, zero, a0            # coloca a semente em a1
+                
 INICIO_LACO:
                 beq     t2, t3, FIM_LACO
                 add     a0, zero, t1            # carrega limite para % (resto da divisão)
@@ -236,6 +227,7 @@ INICIO_LACO:
                 add     a0, zero, t1            # carrega limite para % (resto da divisão)
                 jal     PSEUDO_RAND
                 add     t5, zero, a0            # pega coluna sorteada e coloca em t5
+                
 LE_POSICAO:     
                 mul     t4, t4, t1
                 add     t4, t4, t5              # calcula (L * tam) + C
@@ -243,30 +235,35 @@ LE_POSICAO:
                 add     t4, t4, t4              # multiplica por 4
                 add     t4, t4, t0              # calcula Base + deslocamento
                 lw      t5, 0(t4)               # Le posicao de memoria LxC
+                
 VERIFICA_BOMBA:         
                 addi    t6, zero, 9             # se posição sorteada já possui bomba
                 beq     t5, t6, PULA_ATRIB      # pula atribuição 
                 sw      t6, 0(t4)               # senão coloca 9 (bomba) na posição
                 addi    t3, t3, 1               # incrementa quantidade de bombas sorteadas
+                
 PULA_ATRIB:
                 j       INICIO_LACO
+                
 FIM_LACO:                                       # recupera registradores salvos
                 la      t0, salva_S0
                 lw      s0, 0(t0)               # recupera conteudo de s0 da memória
                 la      t0, salva_ra
                 lw      ra, 0(t0)               # recupera conteudo de ra da memória            
                 jr      ra                      # retorna para funcao que fez a chamada
+                
 PSEUDO_RAND:
-                addi 	t6, zero, 125              # carrega constante t6 = 125
-                lui  	t5, 682                    # carrega constante t5 = 2796203
-                addi 	t5, t5, 1697               # 
-                addi 	t5, t5, 1034               #       
-                mul  	a1, a1, t6                 # a = a * 125
-                rem  	a1, a1, t5                 # a = a % 2796203
-                rem  	a0, a1, a0                 # a % lim
-                bge  	a0, zero, EH_POSITIVO      # testa se valor eh positivo
-                addi 	t4, zero, -1               # caso não 
-                mul  	a0, a0, t4                 # transforma em positivo
+                addi 	t6, zero, 125           # carrega constante t6 = 125
+                lui  	t5, 682			# carrega constante t5 = 2796203
+                addi 	t5, t5, 1697
+                addi 	t5, t5, 1034      
+                mul  	a1, a1, t6		# a = a * 125
+                rem  	a1, a1, t5              # a = a % 2796203
+                rem  	a0, a1, a0              # a % lim
+                bge  	a0, zero, EH_POSITIVO   # testa se valor eh positivo
+                addi 	t4, zero, -1            # caso não 
+                mul  	a0, a0, t4              # transforma em positivo
+                
 EH_POSITIVO:    
                 ret                             # retorna em a0 o valor obtido
 
