@@ -3,6 +3,7 @@
 # Organizacao de Computadores 2020.2
 
 	.data
+msg_debug:		.asciz	"\n######### DEBUG ########\n"
 msg_nova_linha:		.asciz	"|\n "
 msg_icone_fechado:	.asciz	"█"
 msg_icone_bandeira:	.asciz	"F"
@@ -12,16 +13,16 @@ msg_campo_header:	.asciz	"\n\n\n\n\nCampo:\n     0 1 2 3 4 5 6 7\n    ----------
 msg_campo_footer:	.asciz	"   ------------------\n"
 msg_opcoes_menu:	.asciz	"\n 0 - sair\n 1 - abrir posicao\n 2 - posicionar/remover bandeira\n Opcao: "
 msg_abrir_posicao:	.asciz	"\n Qual posicao pretende abrir?: "
-msg_pega_i:		.asciz	"\n Entre com o valor do I: "
-msg_pega_j:		.asciz	" Entre com o valor do J: "
+msg_pega_i:		.asciz	"\n Entre com o indice da Linha: "
+msg_pega_j:		.asciz	" Entre com o indice da coluna: "
 msg_bandeira:		.asciz	"\n Qual bandeira deseja colocar/remover?: "
 
-salva_S0:   		.word 	0
-salva_ra:   		.word 	0
-salva_ra1:		.word 	0
-linhas:			.word	8
-colunas:		.word	8
-campo:			.word
+salva_S0:   	.word 	0
+salva_ra:   	.word 	0
+salva_ra1:	.word 	0
+linhas:		.word	8
+colunas:	.word	8
+campo:		.word
 	0 0 0 0 0 0 0 0
 	0 0 0 0 0 0 0 0
 	0 0 0 0 0 0 0 0
@@ -31,7 +32,7 @@ campo:			.word
 	0 0 0 0 0 0 0 0
 	0 0 0 0 0 0 0 0
 				
-interface:		.word
+interface:	.word
 	0 0 0 0 0 0 0 0
 	0 0 0 0 0 0 0 0
 	0 0 0 0 0 0 0 0
@@ -46,17 +47,15 @@ inicializa:
 	la	a0, campo
 	la	t0, linhas
 	lw	a1, (t0)
-	la	t1, colunas
-	lw	a2, (t1)
 	jal 	INSERE_BOMBA
-
+	nop
 menu:
-	mv	s4, ra
-	la	a0, interface
+	la	a0, campo
 	la	t0, linhas
 	lw	a1, (t0)
 	la	t1, colunas
 	lw	a2, (t1)
+	mv	s0, ra
 	jal	mostra_campo
 	# exibe menu de escolhas
 	la 	a0, msg_opcoes_menu
@@ -79,33 +78,57 @@ menu:
 		la 	a0, msg_abrir_posicao
 		li 	a7, 4
     		ecall
-		pega_ij:
-    			# printa mensagem para o input do valor do i
-			la 	a0, msg_pega_i
-			li 	a7, 4
-    			ecall
-    			# pega o I
-			li 	a7, 5
-    			ecall
-    			mv	a3, a0
-    			# printa mensagem para o input do valor do j
-			la 	a0, msg_pega_j
-			li 	a7, 4
-    			ecall
-    			# pega o J
-			li 	a7, 5
-    			ecall
-    			mv	a4, a0
-			mv	ra, s4
-			ret
-		bandeira:
-			# printa mensagem
-			la 	a0, msg_bandeira
-			li 	a7, 4
-    			ecall
-			jal	pega_ij
-			ret
-
+    		# retorna o indice da matriz
+    		jal	pega_ij
+    		# load campo
+    		# adiciona o retorno no endereco do campo
+    		# verifica qual valor tem la
+    			# se tiver 9 eh game over
+    			# se tiver um Flag, avisa q tem flag
+    			# senao mostra o numero de bombas ao redor
+    		j	menu
+		
+	bandeira:
+		# printa mensagem
+		la 	a0, msg_bandeira
+		li 	a7, 4
+    		ecall
+    		# retorna o indice linear da matriz
+		jal	pega_ij
+		# load campo
+		# incrementa o endereco
+		# verifica se ja tem bandeira nesse lugar
+			# se sim, remove a bandeira (calcula o numero de bombas ao redor e substitui o valor em alguma outra matriz
+			# se nao, adiciona mais 10 em alguma matriz
+		j	menu
+		
+	pega_ij:
+    		# printa mensagem para o input do valor do i
+		la 	a0, msg_pega_i
+		li 	a7, 4
+    		ecall
+    		# pega o I
+		li 	a7, 5
+    		ecall
+    		mv	a3, a0
+    		# printa mensagem para o input do valor do j
+		la 	a0, msg_pega_j
+		li 	a7, 4
+    		ecall
+    		# pega o J
+		li 	a7, 5
+    		ecall
+    		mv	a4, a0
+    		
+    		# I*n + J
+    		la	t1, linhas
+		lw	a1, (t1)
+    		mul	a1, a3, a1
+    		add	a1, a1, a4
+    		li	a2, 8
+    		mul	a1, a1, a2		
+    		# retona o indice linear IJ da matriz em a1
+		ret
 mostra_campo:
 	# recebe o endereco inicial do campo em a0
 	# recebe o numero de linhas em a1
@@ -218,7 +241,6 @@ QTD_BOMBAS:
                 addi    a7, zero, 30            # ecall 30 pega o tempo do sistema em milisegundos (usado como semente)
                 ecall                           
                 add     a1, zero, a0            # coloca a semente em a1
-                
 INICIO_LACO:
                 beq     t2, t3, FIM_LACO
                 add     a0, zero, t1            # carrega limite para % (resto da divisão)
@@ -227,7 +249,6 @@ INICIO_LACO:
                 add     a0, zero, t1            # carrega limite para % (resto da divisão)
                 jal     PSEUDO_RAND
                 add     t5, zero, a0            # pega coluna sorteada e coloca em t5
-                
 LE_POSICAO:     
                 mul     t4, t4, t1
                 add     t4, t4, t5              # calcula (L * tam) + C
@@ -235,35 +256,30 @@ LE_POSICAO:
                 add     t4, t4, t4              # multiplica por 4
                 add     t4, t4, t0              # calcula Base + deslocamento
                 lw      t5, 0(t4)               # Le posicao de memoria LxC
-                
 VERIFICA_BOMBA:         
                 addi    t6, zero, 9             # se posição sorteada já possui bomba
                 beq     t5, t6, PULA_ATRIB      # pula atribuição 
                 sw      t6, 0(t4)               # senão coloca 9 (bomba) na posição
                 addi    t3, t3, 1               # incrementa quantidade de bombas sorteadas
-                
 PULA_ATRIB:
                 j       INICIO_LACO
-                
 FIM_LACO:                                       # recupera registradores salvos
                 la      t0, salva_S0
                 lw      s0, 0(t0)               # recupera conteudo de s0 da memória
                 la      t0, salva_ra
                 lw      ra, 0(t0)               # recupera conteudo de ra da memória            
                 jr      ra                      # retorna para funcao que fez a chamada
-                
 PSEUDO_RAND:
-                addi 	t6, zero, 125           # carrega constante t6 = 125
-                lui  	t5, 682			# carrega constante t5 = 2796203
-                addi 	t5, t5, 1697
-                addi 	t5, t5, 1034      
-                mul  	a1, a1, t6		# a = a * 125
-                rem  	a1, a1, t5              # a = a % 2796203
-                rem  	a0, a1, a0              # a % lim
-                bge  	a0, zero, EH_POSITIVO   # testa se valor eh positivo
-                addi 	t4, zero, -1            # caso não 
-                mul  	a0, a0, t4              # transforma em positivo
-                
+                addi 	t6, zero, 125              # carrega constante t6 = 125
+                lui  	t5, 682                    # carrega constante t5 = 2796203
+                addi 	t5, t5, 1697               # 
+                addi 	t5, t5, 1034               #       
+                mul  	a1, a1, t6                 # a = a * 125
+                rem  	a1, a1, t5                 # a = a % 2796203
+                rem  	a0, a1, a0                 # a % lim
+                bge  	a0, zero, EH_POSITIVO      # testa se valor eh positivo
+                addi 	t4, zero, -1               # caso não 
+                mul  	a0, a0, t4                 # transforma em positivo
 EH_POSITIVO:    
                 ret                             # retorna em a0 o valor obtido
 
