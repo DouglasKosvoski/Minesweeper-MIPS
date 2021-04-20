@@ -30,6 +30,7 @@ inicializa:
 	la	a0, campo
 	addi	a1, zero, 8
 	jal 	INSERE_BOMBA
+
 menu:
 	la	a0, campo
 	addi	a1, zero, 8
@@ -74,7 +75,12 @@ menu:
     		ecall
     		# retorna o indice linear da matriz
 		jal	pega_ij
-		# load campo
+		la	a0, campo
+		add	a0, a0, a1
+		lw	a1, 0(a0)
+		addi	a1, a1, 10
+		sw	a1, 0(a0)
+		## load campo
 		# incrementa o endereco
 		# verifica se ja tem bandeira nesse lugar
 			# se sim, remove a bandeira (calcula o numero de bombas ao redor e substitui o valor em alguma outra matriz
@@ -104,7 +110,7 @@ menu:
 		lw	a1, (t1)
     		mul	a1, a3, a1
     		add	a1, a1, a4
-    		li	a2, 8
+    		li	a2, 4
     		mul	a1, a1, a2		
     		# retona o indice linear IJ da matriz em a1
 		ret
