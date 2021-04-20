@@ -12,12 +12,13 @@ msg_icone_fechado:	.asciz	"█"
 msg_icone_bandeira:	.asciz	"F"
 msg_icone_bomba:	.asciz	"X"
 msg_icone_separador:	.asciz	" | "
-msg_campo_header:	.asciz	"\n\n\n\n\nCampo:\n     0 1 2 3 4 5 6 7\n    ------------------\n 0 | "
+msg_campo_header:	.asciz	"\n Campo:\n     0 1 2 3 4 5 6 7\n    ------------------\n 0 | "
 msg_campo_footer:	.asciz	"   ------------------\n"
 msg_opcoes_menu:	.asciz	"\n 0 - sair\n 1 - abrir posicao\n 2 - posicionar/remover bandeira\n Opcao: "
 msg_abrir_posicao:	.asciz	"\n Qual posicao pretende abrir?: "
 msg_pega_i:		.asciz	"\n Entre com o valor do I: "
 msg_pega_j:		.asciz	" Entre com o valor do J: "
+msg_erro_pega_input:	.asciz	" \n\n ########################################\n #### Numero da posicao invalida !!! ####\n ########################################\n"
 msg_bandeira:		.asciz	"\n Qual bandeira deseja colocar/remover?: "
 ##### Labels Professor ##########
 salva_S0:   		.word 	0
@@ -87,6 +88,13 @@ menu:
 			# se nao, adiciona mais 10 em alguma matriz
 		j	menu
 		
+	erro_input:
+		# avisa que o numero inserido eh invalido
+		la 	a0, msg_erro_pega_input
+		li 	a7, 4
+    		ecall
+    		j	menu
+    		
 	pega_ij:
     		# printa mensagem para o input do valor do i
 		la 	a0, msg_pega_i
@@ -95,6 +103,11 @@ menu:
     		# pega o I
 		li 	a7, 5
     		ecall
+    		# verifica se o input eh maior do 0 e menor do que 8
+    		li	a1, 0
+    		blt	a0, a1, erro_input
+    		li	a1, 7
+    		bgt	a0, a1, erro_input
     		mv	a3, a0
     		# printa mensagem para o input do valor do j
 		la 	a0, msg_pega_j
@@ -103,6 +116,11 @@ menu:
     		# pega o J
 		li 	a7, 5
     		ecall
+    		# verifica se o input eh maior do 0 e menor do que 8
+    		li	a1, 0
+    		blt	a0, a1, erro_input
+    		li	a1, 7
+    		bgt	a0, a1, erro_input
     		mv	a4, a0
     		
     		# I*n + J
