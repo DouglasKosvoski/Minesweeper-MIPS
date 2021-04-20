@@ -19,6 +19,8 @@ msg_abrir_posicao:	.asciz	"\n Qual posicao pretende abrir?: "
 msg_pega_i:		.asciz	"\n Entre com o valor do I: "
 msg_pega_j:		.asciz	" Entre com o valor do J: "
 msg_erro_pega_input:	.asciz	" \n\n ########################################\n #### Numero da posicao invalida !!! ####\n ########################################\n"
+msg_erro_bandeira:	.asciz	" \n\n ########################################\n #### Bandeira ja posicionada    !!! ####\n ########################################\n"
+msg_removendo_bandeira:	.asciz	" \n ########################################\n ####   Removendo bandeira       !!! ####\n ########################################\n"
 msg_bandeira:		.asciz	"\n Qual bandeira deseja colocar/remover?: "
 ##### Labels Professor ##########
 salva_S0:   		.word 	0
@@ -76,9 +78,15 @@ menu:
     		ecall
     		# retorna o indice linear da matriz
 		jal	pega_ij
+		# posiciona a bandeira na matriz campo
 		la	a0, campo
+		mv	a3, a1
 		add	a0, a0, a1
 		lw	a1, 0(a0)
+		li	a2, 9
+		# se ja tem bandeira
+		bgt	a1, a2, erro_bandeira
+		# se nao tem bandeira
 		addi	a1, a1, 10
 		sw	a1, 0(a0)
 		## load campo
@@ -87,14 +95,30 @@ menu:
 			# se sim, remove a bandeira (calcula o numero de bombas ao redor e substitui o valor em alguma outra matriz
 			# se nao, adiciona mais 10 em alguma matriz
 		j	menu
-		
+
 	erro_input:
 		# avisa que o numero inserido eh invalido
 		la 	a0, msg_erro_pega_input
 		li 	a7, 4
     		ecall
     		j	menu
+	erro_bandeira:
+		# avisa que ja existe bandeira na posicao
+		la 	a0, msg_erro_bandeira
+		li 	a7, 4
+    		ecall
+    		# avisa que a bandeira vai ser removida
+		la 	a0, msg_removendo_bandeira
+		li 	a7, 4
+    		ecall
     		
+    		# remove a bandeira
+		la	a0, campo
+		add	a0, a0, a3
+		lw	a1, 0(a0)
+		addi	a1, a1, -10
+		sw	a1, 0(a0)
+    		j	menu	
 	pega_ij:
     		# printa mensagem para o input do valor do i
 		la 	a0, msg_pega_i
