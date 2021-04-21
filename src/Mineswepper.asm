@@ -35,16 +35,12 @@ main:
 	jal 	INSERE_BOMBA
 
 menu:
-	la	a0, interface
-	addi	a1, zero, 8
-	addi	a2, zero, 8
-	mv	s0, ra
-	jal	mostra_campo
 	la	a0, campo
 	addi	a1, zero, 8
 	addi	a2, zero, 8
 	mv	s0, ra
 	jal	mostra_campo
+
 	# exibe menu de escolhas
 	la 	a0, msg_opcoes_menu
 	li 	a7, 4
@@ -179,6 +175,7 @@ mostra_campo:
 	# variavel J
 	li	t2, 0
 	mv	s0, ra
+	la	a3, interface
 	# printa cabecalho do campo
 	la 	a0, msg_campo_header
 	li 	a7, 4
@@ -205,10 +202,13 @@ mostra_campo:
 		li	t3, 0
 		lw	t3, (t0)
 		# variavel para comparar se a celular esta fechada
+		lw	s1, (a3)
 		li	t4, 0
+		# se a posicao estiver fechada na matriz interface, printa posicao fechada
+		beq	s1, t4, printa_posicao_fechada
+		# se nao printa outro caracter/valor
 		li	t5, 10
 		li	t6, 9
-		beq	t4, t3, printa_posicao_fechada
 		bge	t3, t5, printa_bandeira
 		beq	t3, t6, printa_bomba
 		lw	a0, 0(t0)
@@ -222,6 +222,8 @@ mostra_campo:
 		ecall
 		# caminha pelo campo
 		addi	t0, t0, 4
+		# caminha pela interface
+		addi	a3, a3, 4
 		# incrementa variavel I
 		addi	t1, t1, 1
 		bne	t1, a1, loopI_mostra_campo
