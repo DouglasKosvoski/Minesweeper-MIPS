@@ -12,15 +12,15 @@ msg_icone_fechado:	.asciz	"█"
 msg_icone_bandeira:	.asciz	"F"
 msg_icone_bomba:	.asciz	"X"
 msg_icone_separador:	.asciz	" | "
-msg_campo_header:	.asciz	"\n Campo:\n      0 1 2 3 4 5 6 7\n    -------------------\n 0 | "
-msg_campo_footer:	.asciz	"   -------------------\n"
+msg_campo_header:	.asciz	"\n Campo:\n     0 1 2 3 4 5 6 7\n    ------------------\n 0 | "
+msg_campo_footer:	.asciz	"   ------------------\n"
 msg_opcoes_menu:	.asciz	"\n 0 - sair\n 1 - abrir posicao\n 2 - posicionar/remover bandeira\n Opcao: "
 msg_abrir_posicao:	.asciz	"\n Qual posicao pretende abrir?: "
 msg_pega_i:		.asciz	"\n Entre com o valor do I: "
 msg_pega_j:		.asciz	" Entre com o valor do J: "
-msg_erro_pega_input:	.asciz	" \n\n ########################################\n #### Numero da posicao invalida !!! ####\n ########################################\n"
-msg_erro_bandeira:	.asciz	" \n\n ########################################\n #### Bandeira ja posicionada    !!! ####\n ########################################\n"
-msg_removendo_bandeira:	.asciz	" \n ########################################\n ####   Removendo bandeira       !!! ####\n ########################################\n"
+msg_erro_pega_input:	.asciz	"\n\n ########################################\n #### Numero da posicao invalida !!! ####\n ########################################\n"
+msg_erro_bandeira:	.asciz	"\n\n ########################################\n #### Bandeira ja posicionada    !!! ####\n ########################################\n"
+msg_removendo_bandeira:	.asciz	"\n ########################################\n ####   Removendo bandeira       !!! ####\n ########################################\n"
 msg_bandeira:		.asciz	"\n Qual bandeira deseja colocar/remover?: "
 ##### Labels Professor ##########
 salva_S0:   		.word 	0
@@ -35,6 +35,11 @@ main:
 	jal 	INSERE_BOMBA
 
 menu:
+	la	a0, interface
+	addi	a1, zero, 8
+	addi	a2, zero, 8
+	mv	s0, ra
+	jal	mostra_campo
 	la	a0, campo
 	addi	a1, zero, 8
 	addi	a2, zero, 8
@@ -85,9 +90,14 @@ menu:
 		lw	a1, 0(a0)
 		li	a2, 9
 		# se ja tem bandeira
-		bgt	a1, a2, erro_bandeira
+		bgt	a1, a2, remove_bandeira
 		# se nao tem bandeira
 		addi	a1, a1, 10
+		sw	a1, 0(a0)
+		la	a0, interface
+		add	a0, a0, a3
+		lw	a1, 0(a0)
+		addi	a1, a1, 1
 		sw	a1, 0(a0)
 		j	menu
 
@@ -97,7 +107,7 @@ menu:
 		li 	a7, 4
     		ecall
     		j	menu
-	erro_bandeira:
+	remove_bandeira:
 		# avisa que ja existe bandeira na posicao
 		la 	a0, msg_erro_bandeira
 		li 	a7, 4
@@ -107,11 +117,17 @@ menu:
 		li 	a7, 4
     		ecall
     		
-    		# remove a bandeira
+    		# remove a bandeira da matriz campo
 		la	a0, campo
 		add	a0, a0, a3
 		lw	a1, 0(a0)
 		addi	a1, a1, -10
+		sw	a1, 0(a0)
+		# fecha a posicao na matriz interface
+		la	a0, interface
+		add	a0, a0, a3
+		lw	a1, 0(a0)
+		addi	a1, a1, -1
 		sw	a1, 0(a0)
     		j	menu	
 	pega_ij:
