@@ -12,8 +12,8 @@ msg_icone_fechado:	.asciz	"█"
 msg_icone_bandeira:	.asciz	"F"
 msg_icone_bomba:	.asciz	"X"
 msg_icone_separador:	.asciz	" | "
-msg_campo_header:	.asciz	"\n Campo:\n     0 1 2 3 4 5 6 7\n    ------------------\n 0 | "
-msg_campo_footer:	.asciz	"   ------------------\n"
+msg_campo_header:	.asciz	"\n Campo:\n      0 1 2 3 4 5 6 7\n    -------------------\n 0 | "
+msg_campo_footer:	.asciz	"   -------------------\n"
 msg_opcoes_menu:	.asciz	"\n 0 - sair\n 1 - abrir posicao\n 2 - posicionar/remover bandeira\n Opcao: "
 msg_abrir_posicao:	.asciz	"\n Qual posicao pretende abrir?: "
 msg_pega_i:		.asciz	"\n Entre com o valor do I: "
@@ -29,7 +29,7 @@ salva_ra1:		.word 	0
 #################################
 
 	.text
-inicializa:
+main:
 	la	a0, campo
 	addi	a1, zero, 8
 	jal 	INSERE_BOMBA
@@ -89,11 +89,6 @@ menu:
 		# se nao tem bandeira
 		addi	a1, a1, 10
 		sw	a1, 0(a0)
-		## load campo
-		# incrementa o endereco
-		# verifica se ja tem bandeira nesse lugar
-			# se sim, remove a bandeira (calcula o numero de bombas ao redor e substitui o valor em alguma outra matriz
-			# se nao, adiciona mais 10 em alguma matriz
 		j	menu
 
 	erro_input:
