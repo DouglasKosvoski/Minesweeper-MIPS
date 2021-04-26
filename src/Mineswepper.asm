@@ -67,12 +67,30 @@ menu:
     		# retorna o indice da matriz
     		jal	pega_ij
     		la	a0, campo
+
+    		# percorre o campo
     		add	a0, a0, a1
+    		# carrega o valor no campo
     		lw	t0, (a0)
+    		# valor da bomba
     		li	t1, 9
+    		# se o valor da posicao no campo for 9 eh fim de jogo
     		beq	t0, t1, game_over
+    		# se o valor da posicao no campo for maior do q 9 eh pq tem uma bandeira
     		bgt	t0, t1, nao_pode_abrir
-    	
+    		
+        calcula_bombas:
+		# salva o numero de bombas adjacentes no campo
+        	addi	t0, t0, 3
+        	sw	t0, (a0)
+		# abre a posicao na matriz interface
+           	la	a2, interface
+           	add	a2, a2, a1
+           	lw	t0, (a2)
+           	addi	t0, t0, 1
+		sw	t0, (a2)
+    		j	menu
+    		
     	nao_pode_abrir:
     		# printa mensagem
 		la 	a0, msg_erro_abrir
@@ -86,14 +104,39 @@ menu:
 		li 	a7, 4
     		ecall
     		la	a0, campo
-    		la	a1, linhas
-    		mv	a2, a1
-    		#jal	mostra_campo
+    		la	a1, interface
+		# pega o tamanho (lado * lado)
+    		la	a2, linhas
+    		lw	a2, (a2)
+		mul	a2, a2, a2
+    		# variavel de controle
+		li	t0, 0
+		li	t1, 9
+		abre_bombas:
+			# pega o valor no campo
+			lw	t2, (a0)
+			# se o valor no campo for uma bomba ou uma bandeira
+			bge	t2, t1, abre
+			j	asd
+			abre:
+				# pega o valor na interface
+				li	t3, 1
+				sw	t3, (a1)
+			asd:
+				# caminho pelo campo
+				addi	a0, a0, 4
+				# caminha pela interface
+				addi	a1, a1, 4
+				# incrementa a variavel de controle
+				addi	t0, t0, 1
+				bne	t0, a2, abre_bombas
+		la	a0, campo
+		addi	a1, zero, 8
+		addi	a2, zero, 8
+		mv	s0, ra
+		jal	mostra_campo
 		j	end
 		
-    	calcula_bombas:
-    		j	menu
-    		
 	bandeira:
 		# printa mensagem
 		la 	a0, msg_bandeira
