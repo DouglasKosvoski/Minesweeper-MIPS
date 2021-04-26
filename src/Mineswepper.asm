@@ -20,7 +20,9 @@ msg_pega_i:		.asciz	"\n Entre com o valor do I: "
 msg_pega_j:		.asciz	" Entre com o valor do J: "
 msg_erro_pega_input:	.asciz	"\n\n ########################################\n #### Numero da posicao invalida !!! ####\n ########################################\n"
 msg_erro_bandeira:	.asciz	"\n\n ########################################\n #### Bandeira ja posicionada    !!! ####\n ########################################\n"
-msg_removendo_bandeira:	.asciz	"\n ########################################\n ####   Removendo bandeira       !!! ####\n ########################################\n"
+msg_erro_abrir:		.asciz	"\n ########################################\n     Tem bandeira. Jogada invalida !!!      \n ########################################\n"
+msg_removendo_bandeira:	.asciz	"\n ########################################\n ####   Removendo bandeira !!!       ####\n ########################################\n"
+msg_game_over:		.asciz	"\n ########################################\n ####   Explodido... Acabou !!!      ####\n ########################################\n"
 msg_bandeira:		.asciz	"\n Qual bandeira deseja colocar/remover?: "
 ##### Labels Professor ##########
 salva_S0:   		.word 	0
@@ -64,29 +66,53 @@ menu:
     		ecall
     		# retorna o indice da matriz
     		jal	pega_ij
-    		# load campo
-    		# adiciona o retorno no endereco do campo
-    		# verifica qual valor tem la
-    			# se tiver 9 eh game over
-    			# se tiver um Flag, avisa q tem flag
-    			# senao mostra o numero de bombas ao redor
+    		la	a0, campo
+    		add	a0, a0, a1
+    		lw	t0, (a0)
+    		li	t1, 9
+    		beq	t0, t1, game_over
+    		bgt	t0, t1, nao_pode_abrir
+    	
+    	nao_pode_abrir:
+    		# printa mensagem
+		la 	a0, msg_erro_abrir
+		li 	a7, 4
+    		ecall
     		j	menu
+	
+	game_over:
+		# printa mensagem
+		la 	a0, msg_game_over
+		li 	a7, 4
+    		ecall
+    		la	a0, campo
+    		la	a1, linhas
+    		mv	a2, a1
+    		#jal	mostra_campo
+		j	end
 		
+    	calcula_bombas:
+    		j	menu
+    		
 	bandeira:
 		# printa mensagem
 		la 	a0, msg_bandeira
 		li 	a7, 4
     		ecall
+    		
     		# retorna o indice linear da matriz
 		jal	pega_ij
+		
 		# posiciona a bandeira na matriz campo
 		la	a0, campo
 		mv	a3, a1
 		add	a0, a0, a1
 		lw	a1, 0(a0)
 		li	a2, 9
+		
 		# se ja tem bandeira
 		bgt	a1, a2, remove_bandeira
+		
 		# se nao tem bandeira
 		addi	a1, a1, 10
 		sw	a1, 0(a0)
@@ -103,11 +129,13 @@ menu:
 		li 	a7, 4
     		ecall
     		j	menu
+
 	remove_bandeira:
 		# avisa que ja existe bandeira na posicao
 		la 	a0, msg_erro_bandeira
 		li 	a7, 4
     		ecall
+    		
     		# avisa que a bandeira vai ser removida
 		la 	a0, msg_removendo_bandeira
 		li 	a7, 4
@@ -119,13 +147,15 @@ menu:
 		lw	a1, 0(a0)
 		addi	a1, a1, -10
 		sw	a1, 0(a0)
+		
 		# fecha a posicao na matriz interface
 		la	a0, interface
 		add	a0, a0, a3
 		lw	a1, 0(a0)
 		addi	a1, a1, -1
 		sw	a1, 0(a0)
-    		j	menu	
+    		j	menu
+    		
 	pega_ij:
     		# printa mensagem para o input do valor do i
 		la 	a0, msg_pega_i
@@ -160,9 +190,14 @@ menu:
     		mul	a1, a3, a1
     		add	a1, a1, a4
     		li	a2, 4
-    		mul	a1, a1, a2		
+    		mul	a1, a1, a2
+    		mv	a2, a3
+    		mv	a3, a4
     		# retona o indice linear IJ da matriz em a1
+    		# retorna o I no a2
+    		# retorna o J no a3
 		ret
+
 mostra_campo:
 	# recebe o endereco inicial do campo em a0
 	# recebe o numero de linhas em a1
@@ -187,7 +222,7 @@ mostra_campo:
 	li 	a7, 4
     	ecall
 	ret
-	
+
 	printa_numero_linha:
 		# printa o numero da linha
 		mv	a0, t2
