@@ -23,6 +23,7 @@ msg_erro_bandeira:	.asciz	"\n\n ########################################\n #### 
 msg_erro_abrir:		.asciz	"\n ########################################\n     Tem bandeira. Jogada invalida !!!      \n ########################################\n"
 msg_erro_abrir2:	.asciz	"\n ########################################\n      Posicao ja aberta. Invalida  !!!      \n ########################################\n"
 msg_removendo_bandeira:	.asciz	"\n ########################################\n ####   Removendo bandeira !!!       ####\n ########################################\n"
+msg_celula_ja_aberta:	.asciz	"\n ########################################\n ####    Celula ja aberta  !!!       ####\n ########################################\n"
 msg_game_over:		.asciz	"\n ########################################\n ####   Explodido... Acabou !!!      ####\n ########################################\n"
 msg_bandeira:		.asciz	"\n Qual bandeira deseja colocar/remover?: "
 ##### Labels Professor ##########
@@ -79,7 +80,21 @@ menu:
     		beq	t0, t1, game_over
     		# se o valor da posicao no campo for maior do q 9 eh pq tem uma bandeira
     		bgt	t0, t1, nao_pode_abrir
-    		
+    		# vai ate a posicao na matriz da interface
+    		la	a7, interface
+    		add	a7, a7, a1
+    		lw	t0, (a7)
+    		li	t1, 1
+    		bge	t0, t1, celula_ja_aberta
+		b	calcula_bombas
+		
+	celula_ja_aberta:
+		# printa mensagem
+		la 	a0, msg_celula_ja_aberta
+		li 	a7, 4
+    		ecall
+    		j	menu
+	
         calcula_bombas:	
         	# numero de bombas vizinhas
         	li	s11, 0
