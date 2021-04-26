@@ -21,6 +21,7 @@ msg_pega_j:		.asciz	" Entre com o valor do J: "
 msg_erro_pega_input:	.asciz	"\n\n ########################################\n #### Numero da posicao invalida !!! ####\n ########################################\n"
 msg_erro_bandeira:	.asciz	"\n\n ########################################\n #### Bandeira ja posicionada    !!! ####\n ########################################\n"
 msg_erro_abrir:		.asciz	"\n ########################################\n     Tem bandeira. Jogada invalida !!!      \n ########################################\n"
+msg_erro_abrir2:	.asciz	"\n ########################################\n      Posicao ja aberta. Invalida  !!!      \n ########################################\n"
 msg_removendo_bandeira:	.asciz	"\n ########################################\n ####   Removendo bandeira !!!       ####\n ########################################\n"
 msg_game_over:		.asciz	"\n ########################################\n ####   Explodido... Acabou !!!      ####\n ########################################\n"
 msg_bandeira:		.asciz	"\n Qual bandeira deseja colocar/remover?: "
@@ -79,16 +80,183 @@ menu:
     		# se o valor da posicao no campo for maior do q 9 eh pq tem uma bandeira
     		bgt	t0, t1, nao_pode_abrir
     		
-        calcula_bombas:
-		# salva o numero de bombas adjacentes no campo
-        	addi	t0, t0, 3
-        	sw	t0, (a0)
-		# abre a posicao na matriz interface
-           	la	a2, interface
-           	add	a2, a2, a1
-           	lw	t0, (a2)
-           	addi	t0, t0, 1
-		sw	t0, (a2)
+        calcula_bombas:	
+        	# numero de bombas vizinhas
+        	li	s11, 0
+
+       	     	# esquerda index % 32
+        	li	t3, 32
+        	rem	t1, a1, t3
+        	# direita (index+4) % 32)
+        	addi	a1, a1, 4
+		rem	t2, a1, t3
+		addi	a1, a1, -4
+		# nao tem coluna a esquerda
+		beq	t1, zero, direita
+		# nao tem coluna a direita
+		beq	t2, zero, esquerda
+		#b	meio
+        		
+        	# calcula as bombas à esqueda
+        	esquerda:
+        		# verificar se tem linha a cima
+        		li	t3, 28
+        		# pra ter acima, o index tem q ser maior do q 28
+        		bgt	a1, t3, cima_esq
+        		b	meio_esq
+        		
+        		# se ele tem linha acima
+        		cima_esq:
+        			# addi -9
+        			addi	a0, a0, -36
+        			# verifica se eh 9
+        			lw	s10, (a0)
+        			li	s9, 9
+				addi	a0, a0, 36
+        			beq	s10, s9, achou_bomba
+        			j	meio_esq
+				achou_bomba:
+					addi	s11, s11, 1
+					
+        		# uma vez q tem coluna a esquerda
+        		meio_esq:
+        			# addi -1
+        			addi	a0, a0, -4
+        			# verifica se eh 9
+        			lw	s10, (a0)
+        			addi	a0, a0, 4
+        			li	s9, 9
+        			beq	s10, s9, achou_bomba2
+        			j	baixo_esq
+				achou_bomba2:
+					addi	s11, s11, 1
+					
+        		# se ele tem linha a baixo
+        		baixo_esq:
+        			# verificar se tem linha a baixo
+        			li 	t3, 220
+        			# pra ter abaixo o index tem q ser menor igual do q 220
+        			ble	a1, t3, tem_abaixo_esq
+        			# se nao tem linha a baixo
+				b	meio
+				
+			tem_abaixo_esq:
+        			# addi +7
+        			addi	a0, a0, 28
+        			# verifica se eh 9
+        			lw	s10, (a0)
+        			addi	a0, a0, -28
+        			li	s9, 9
+        			beq	s10, s9, achou_bomba3
+        			beq	t2, zero, meio
+        			j	direita
+				achou_bomba3:
+					addi	s11, s11, 1
+
+		direita:
+			# verificar se tem linha a cima
+        		li	t3, 28
+        		# pra ter acima, o index tem q ser maior do q 28
+        		bgt	a1, t3, cima_dir
+        		b	meio_dir
+        		
+        		# se ele tem linha acima
+        		cima_dir:
+        			# addi -7
+        			addi	a0, a0, -28
+        			# verifica se eh 9
+        			lw	s10, (a0)
+        			li	s9, 9
+				addi	a0, a0, 28
+        			beq	s10, s9, achou_bomba4
+        			j	meio_dir
+				achou_bomba4:
+					addi	s11, s11, 1
+					
+        		# uma vez q tem coluna a esquerda
+        		meio_dir:
+        			# addi +1
+        			addi	a0, a0, +4
+        			# verifica se eh 9
+        			lw	s10, (a0)
+        			addi	a0, a0, -4
+        			li	s9, 9
+        			beq	s10, s9, achou_bomba5
+        			j	baixo_dir
+				achou_bomba5:
+					addi	s11, s11, 1
+					
+        		# se ele tem linha a baixo
+        		baixo_dir:
+        			# verificar se tem linha a baixo
+        			li 	t3, 220
+        			# pra ter abaixo o index tem q ser menor igual do q 220
+        			ble	a1, t3, tem_abaixo_dir
+        			# se nao tem linha a baixo
+				b	salva_numero_bombas
+				
+			tem_abaixo_dir:
+        			# addi +9
+        			addi	a0, a0, 36
+        			# verifica se eh 9
+        			lw	s10, (a0)
+        			addi	a0, a0, -36
+        			li	s9, 9
+        			beq	s10, s9, achou_bomba6
+        			j	meio
+				achou_bomba6:
+					addi	s11, s11, 1
+		meio:
+			# verificar se tem linha a cima
+        		li	t3, 28
+        		# pra ter acima, o index tem q ser maior do q 28
+        		bgt	a1, t3, cima_meio
+        		b	baixo_meio
+        		
+        		# se ele tem linha acima
+        		cima_meio:
+        			# addi -7
+        			addi	a0, a0, -32
+        			# verifica se eh 9
+        			lw	s10, (a0)
+        			li	s9, 9
+				addi	a0, a0, 32
+        			beq	s10, s9, achou_bomba7
+        			j	baixo_meio
+				achou_bomba7:
+					addi	s11, s11, 1
+					
+        		# se ele tem linha a baixo
+        		baixo_meio:
+        			# verificar se tem linha a baixo
+        			li 	t3, 220
+        			# pra ter abaixo o index tem q ser menor igual do q 220
+        			ble	a1, t3, tem_abaixo_meio
+        			# se nao tem linha a baixo
+				b	salva_numero_bombas
+				
+			tem_abaixo_meio:
+        			# addi +9
+        			addi	a0, a0, +32
+        			# verifica se eh 9
+        			lw	s10, (a0)
+        			addi	a0, a0, -32
+        			li	s9, 9
+        			beq	s10, s9, achou_bomba8
+        			j	salva_numero_bombas
+				achou_bomba8:
+					addi	s11, s11, 1
+
+        	salva_numero_bombas:
+			# salva o numero de bombas adjacentes no campo
+        		add	t0, t0, s11
+        		sw	t0, (a0)
+			# abre a posicao na matriz interface
+           		la	a2, interface
+           		add	a2, a2, a1
+           		li	t0, 1
+			sw	t0, (a2)
+			
     		j	menu
     		
     	nao_pode_abrir:
@@ -112,6 +280,7 @@ menu:
     		# variavel de controle
 		li	t0, 0
 		li	t1, 9
+		
 		abre_bombas:
 			# pega o valor no campo
 			lw	t2, (a0)
@@ -120,6 +289,7 @@ menu:
 			j	asd
 			abre:
 				# pega o valor na interface
+				
 				li	t3, 1
 				sw	t3, (a1)
 			asd:
