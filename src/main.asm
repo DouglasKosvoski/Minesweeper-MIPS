@@ -6,7 +6,8 @@
 campo:			.space 256
 interface:		.space 256
 linhas:			.word	8
-colunas:		.word	8
+# 64 - 15... numero de celulas menos o numero de bombas
+numero_jogadas:		.word	49
 msg_nova_linha:		.asciz	"|\n "
 msg_icone_fechado:	.asciz	"█"
 msg_icone_bandeira:	.asciz	"F"
@@ -25,6 +26,7 @@ msg_erro_abrir2:	.asciz	"\n ########################################\n      Posi
 msg_removendo_bandeira:	.asciz	"\n ########################################\n ####   Removendo bandeira !!!       ####\n ########################################\n"
 msg_celula_ja_aberta:	.asciz	"\n ########################################\n ####    Celula ja aberta  !!!       ####\n ########################################\n"
 msg_game_over:		.asciz	"\n ########################################\n ####   Explodido... Acabou !!!      ####\n ########################################\n"
+msg_win:		.asciz	"\n ########################################\n ####    Parabens vc ganhou !!!      ####\n ########################################\n"
 msg_bandeira:		.asciz	"\n Qual bandeira deseja colocar/remover?: "
 ##### Labels Professor ##########
 salva_S0:   		.word 	0
@@ -271,8 +273,19 @@ menu:
            		add	a2, a2, a1
            		li	t0, 1
 			sw	t0, (a2)
-			
+			# diminui o numero de jogadas restantes
+			la	t0, numero_jogadas
+			lw	t1, (t0)
+			addi	t1, t1, -1
+			sw	t1, (t0)
+			ble	t1, zero, win
     		j	menu
+    	win:
+    		# printa mensagem
+		la 	a0, msg_win
+		li 	a7, 4
+    		ecall
+    		j	end
     		
     	nao_pode_abrir:
     		# printa mensagem
